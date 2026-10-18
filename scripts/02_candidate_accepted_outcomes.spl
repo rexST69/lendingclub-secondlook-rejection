@@ -1,0 +1,8 @@
+index=club sourcetype="lendingclub:accepted" dti_band="<=10" amount_band="<=5k"
+| stats
+    sum(eval(if(outcome_group="default",loan_count,0))) AS defaults
+    sum(eval(if(outcome_group="paid",loan_count,0))) AS paid
+    sum(eval(if(outcome_group="other",loan_count,0))) AS other
+| eval resolved_outcomes=defaults+paid
+| eval observed_default_rate=if(resolved_outcomes>0,round(100*defaults/resolved_outcomes,2),null())
+| table defaults paid other resolved_outcomes observed_default_rate

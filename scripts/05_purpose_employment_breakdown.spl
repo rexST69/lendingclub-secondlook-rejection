@@ -1,0 +1,16 @@
+index=club sourcetype="lendingclub:rejected" dti_band="<=10" amount_band="<=5k"
+| stats sum(rejected_applications) AS rejected_applications BY purpose employment_length
+| join type=left purpose employment_length [
+    search index=club sourcetype="lendingclub:accepted"
+           dti_band="<=10" amount_band="<=5k"
+    | stats
+        sum(eval(if(outcome_group="default",loan_count,0))) AS defaults
+        sum(eval(if(outcome_group="paid",loan_count,0))) AS paid
+        sum(eval(if(outcome_group="other",loan_count,0))) AS other
+      BY purpose employment_length
+  ]
+| fillnull value=0 rejected_applications defaults paid other
+| eval terminal_loans=defaults+paid
+| eval accepted_default_rate_pct=if(terminal_loans>0,round(100*defaults/terminal_loans,2),null())
+| sort 0 - rejected_applications
+| table purpose employment_length rejected_applications paid defaults other accepted_default_rate_pct terminal_loans

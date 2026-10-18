@@ -1,0 +1,25 @@
+index=club sourcetype="lendingclub:sample" source_type="rejected"
+| stats count AS rejected_applications BY dti_band amount_band
+| sort 0 - rejected_applications
+
+index=club sourcetype="lendingclub:sample" source_type="accepted"
+| stats
+    count(eval(outcome_group="default")) AS defaults
+    count(eval(outcome_group="paid")) AS paid
+    count(eval(outcome_group="other")) AS other
+  BY dti_band amount_band
+| eval terminal_loans=defaults+paid
+| eval default_rate_pct=if(terminal_loans>0,round(100*defaults/terminal_loans,2),null())
+| table dti_band amount_band defaults paid other terminal_loans default_rate_pct
+
+index=club sourcetype="lendingclub:sample"
+| stats count BY source_type dti_band
+| sort source_type dti_band
+
+index=club sourcetype="lendingclub:sample"
+| stats count BY source_type amount_band
+| sort source_type amount_band
+
+index=club sourcetype="lendingclub:sample"
+| stats count BY source_type employment_length
+| sort source_type employment_length

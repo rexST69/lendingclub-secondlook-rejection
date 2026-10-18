@@ -1,0 +1,2 @@
+index=club sourcetype="lendingclub:rejected" dti_band="<=10" amount_band="<=5k"
+| stats sum(rejected_applications) AS rejected_applications
